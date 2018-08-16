@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scala-Gamecenter</title>
+</head>
+<body>
+<div id="react-stage"></div>
+@scalajs.html.scripts("client", name => s"/assets/$name", name => getClass.getResource(s"/public/$name") != null)
+</body>
+</html>
