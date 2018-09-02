@@ -1,4 +1,4 @@
-import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
+import sbtcrossproject.CrossPlugin.autoImport.{CrossType, crossProject}
 
 scalaVersion in ThisBuild := "2.12.6"
 
@@ -32,26 +32,12 @@ lazy val client = (project in file("client")).settings(
     "com.github.julien-truffaut" %%% "monocle-macro" % "1.4.0"
   ),
   dependencyOverrides += "org.webjars.npm" % "js-tokens" % "3.0.2",
-  jsDependencies ++= Seq(
-    "org.webjars.npm" % "react" % "16.2.0"
-      / "umd/react.development.js"
-      minified "umd/react.production.min.js"
-      commonJSName "React",
-
-    "org.webjars.npm" % "react-dom" % "16.2.0"
-      / "umd/react-dom.development.js"
-      minified "umd/react-dom.production.min.js"
-      dependsOn "umd/react.development.js"
-      commonJSName "ReactDOM",
-
-    "org.webjars.npm" % "react-dom" % "16.2.0"
-      / "umd/react-dom-server.browser.development.js"
-      minified "umd/react-dom-server.browser.production.min.js"
-      dependsOn "umd/react-dom.development.js"
-      commonJSName "ReactDOMServer"
+  npmDependencies in Compile ++= Seq(
+    "react" -> "16.4.2",
+    "react-dom" -> "16.4.2",
   )
 )
-  .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
+  .enablePlugins(ScalaJSPlugin, ScalaJSWeb, ScalaJSBundlerPlugin)
   .dependsOn(sharedJs)
 
 lazy val shared = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure) in file("shared"))
@@ -65,3 +51,4 @@ lazy val shared = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pur
 
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
+
