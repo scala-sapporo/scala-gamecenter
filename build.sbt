@@ -52,3 +52,8 @@ lazy val shared = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pur
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
 
+lazy val interface = (project in file("interface"))
+  .settings(
+    name := "scala-gamecenter-interface",
+  )
+  .enablePlugins(ScalaJSPlugin)
