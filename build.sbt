@@ -38,7 +38,7 @@ lazy val client = (project in file("client")).settings(
   )
 )
   .enablePlugins(ScalaJSPlugin, ScalaJSWeb, ScalaJSBundlerPlugin)
-  .dependsOn(sharedJs)
+  .dependsOn(sharedJs, interface)
 
 lazy val shared = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure) in file("shared"))
   .jsConfigure(_ enablePlugins ScalaJSWeb)
