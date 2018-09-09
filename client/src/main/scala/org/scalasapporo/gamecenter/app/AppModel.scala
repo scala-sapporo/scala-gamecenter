@@ -37,12 +37,15 @@ trait Game {
   val setting: GameSetting
 }
 object Game {
-  val all = Seq(GameTenTen)
+  val all = Seq(GameTenTen, GameTenTenMatch)
 }
 case object GameTenTen extends Game {
   override val setting: GameSetting = GameSetting("TenTen", "4フィールド中2フィールドで10ライン消せばクリア", 520, 520)
 }
-case class GameSetting(name: String, description: String, width: Int, height: Int)
+case object GameTenTenMatch extends Game {
+  override val setting: GameSetting = GameSetting("TenTen(Match)", "対戦型TenTen(実験中)", 520, 520, isMatch = true)
+}
+case class GameSetting(name: String, description: String, width: Int, height: Int, isMatch: Boolean = false)
 
 sealed trait AppStateHandler {
   def setState(state: AppState): Callback

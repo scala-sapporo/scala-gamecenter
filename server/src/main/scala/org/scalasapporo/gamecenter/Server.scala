@@ -42,7 +42,11 @@ object Server extends App with Directives {
       .to(Sink.actorRef(context, Closed(uuid)))
     val source = Source
       .actorRef[Event](16, OverflowStrategy.dropHead)
-      .map(event => BinaryMessage(ByteString(Pickle.intoBytes[Event](event))))
+      .map {
+        case MessageGotten(_, message) => TextMessage(message)
+        case event => BinaryMessage(ByteString(Pickle.intoBytes[Event](event)))
+      }
+      // .map(event => BinaryMessage(ByteString(Pickle.intoBytes[Event](event))))
       .mapMaterializedValue(system.eventStream.subscribe(_, classOf[Event]))
     Flow.fromSinkAndSource(sink, source)
   }
@@ -101,7 +105,7 @@ class ServerContext extends Actor {
           publish(UserLeft(nickname))
           nicknames = nicknames - uuid
         }
-    case (_: TextMessage, _: String) => // ignore
+    case (textMessage: TextMessage, id: String) => publish(MessageGotten(id, s"on text message: ${textMessage.getStrictText}"))
     case other => println(s"Unknown message: $other")
   }
   private def executeCommand(command: Command, uuid: String): Unit = command match {

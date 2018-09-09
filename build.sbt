@@ -1,3 +1,4 @@
+import com.amazonaws.regions.{Region, Regions}
 import sbtcrossproject.CrossPlugin.autoImport.{CrossType, crossProject}
 
 scalaVersion in ThisBuild := "2.12.6"
@@ -18,8 +19,13 @@ lazy val server = (project in file("server")).settings(
   ),
   WebKeys.packagePrefix in Assets := "public/",
   managedClasspath in Runtime += (packageBin in Assets).value,
+  region in Ecr := Region.getRegion(Regions.US_WEST_2),
+  repositoryName in Ecr := (packageName in Docker).value,
+  localDockerImage in Ecr := (packageName in Docker).value + ":" + (version in Docker).value,
+  login in Ecr := ((login in Ecr) dependsOn (createRepository in Ecr)).value,
+  push in Ecr := ((push in Ecr) dependsOn(publishLocal in Docker, login in Ecr)).value
 )
-  .enablePlugins(SbtWeb, JavaAppPackaging, SbtTwirl)
+  .enablePlugins(SbtWeb, JavaAppPackaging, SbtTwirl, EcrPlugin)
   .dependsOn(sharedJvm)
 
 
