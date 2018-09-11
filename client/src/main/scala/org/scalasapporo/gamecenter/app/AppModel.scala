@@ -3,8 +3,9 @@ package org.scalasapporo.gamecenter.app
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom
-import dom.raw.{HTMLIFrameElement, HTMLSelectElement}
+import dom.raw.{HTMLIFrameElement, HTMLSelectElement, MessageEvent}
 
+import scala.scalajs.js
 import scala.scalajs.js.JSConverters._
 
 case class AppModel(
@@ -35,6 +36,7 @@ case object AnonymousPlayer extends Player
 // FIXME 暫定でここに置く
 trait Game {
   val setting: GameSetting
+  def isMatch: Boolean = setting.isMatch
 }
 object Game {
   val all = Seq(GameTenTen, GameTenTenMatch)
@@ -119,15 +121,28 @@ object GameView {
   def props(game: Game) = Props(game)
   private[app] class Backend(bs: BackendScope[Props, Unit]) {
     private val iframeRef = Ref[HTMLIFrameElement]
+    private val roIframeRef = Ref[HTMLIFrameElement]
     def init: Callback = {
+      val targetOrigin = "https://lab.yuiwai.com"
+      dom.window.onmessage = (e: MessageEvent) => {
+        if (e.origin == targetOrigin) {
+          roIframeRef.foreach { frm =>
+            frm.contentWindow.postMessage(e.data.asInstanceOf[js.Any], targetOrigin)
+          }
+        }
+      }
       iframeRef.foreach { frm =>
         frm.onload = _ => {
           frm.focus()
-          frm.contentWindow.postMessage("start", "https://lab.yuiwai.com")
+          frm.contentWindow.postMessage("start", targetOrigin)
+        }
+      } >> roIframeRef.foreach { frm =>
+        frm.onload = _ => {
+          frm.contentWindow.postMessage("readOnly", targetOrigin)
         }
       }
     }
-    def render(): VdomElement = {
+    def render(props: Props): VdomElement = {
       <.div(
         <.iframe(
           ^.src := "index.html",
@@ -136,7 +151,17 @@ object GameView {
             "height" -> "520px",
             "border" -> "0"
           ).toJSDictionary
-        ).withRef(iframeRef)
+        ).withRef(iframeRef),
+        if (props.game.isMatch) {
+          <.iframe(
+            ^.src := "index.html",
+            ^.style := Map(
+              "width" -> "520px",
+              "height" -> "520px",
+              "border" -> "0"
+            ).toJSDictionary
+          ).withRef(roIframeRef)
+        } else EmptyVdom
       )
     }
   }
