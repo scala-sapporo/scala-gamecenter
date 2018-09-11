@@ -86,16 +86,16 @@ object GameSelectorView {
   private val gameSelectRef = Ref[HTMLSelectElement]
   def props(games: Seq[Game], appStateHandler: AppStateHandler) = Props(games, appStateHandler)
   class Backend(bs: BackendScope[Props, State]) {
-    private def onSelect = gameSelectRef.foreachCB { s =>
+    private def onChange() = gameSelectRef.foreachCB { s =>
       bs.props.flatMap { p =>
         bs.modState(_.copy(Some(p.games(s.selectedIndex))))
       }
     }
-    def init = onSelect
+    def init = onChange()
     def render(p: Props, s: State) = {
       <.div(
         <.select(
-          ^.onSelect --> onSelect,
+          ^.onChange --> onChange(),
           p.games.map(game => <.option(game.setting.name)).toTagMod
         ).withRef(gameSelectRef),
         <.button(
