@@ -56,3 +56,6 @@ lazy val connector = (project in file("connector"))
   .settings(
     name := "scala-gamecenter-connector"
   )
+
+lazy val check = (project in file("check"))
+  .dependsOn(connector)

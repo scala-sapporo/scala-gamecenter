@@ -7,13 +7,11 @@ trait Connector {
 }
 
 trait ProcessConnector extends Connector {
-  import java.io.File
   import scala.sys.process._
-  def workingDirectory: File
   def program: String
   def req2str(request: Request): String
   def str2res(result: String): Response
   override def execute(request: Request): Response = str2res {
-    Process(Seq(program, req2str(request)), workingDirectory).!!
+    Process(Seq(program, req2str(request))).!!
   }
 }
