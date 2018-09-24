@@ -52,3 +52,7 @@ lazy val shared = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pur
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
 
+lazy val connector = (project in file("connector"))
+  .settings(
+    name := "scala-gamecenter-connector"
+  )
