@@ -5,3 +5,6 @@ addSbtPlugin("com.vmunier" % "sbt-web-scalajs" % "1.0.8-0.6")
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "0.6.0")
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.3.13")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
+addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.18")
+
+libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.8.0"

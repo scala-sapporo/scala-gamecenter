@@ -1,10 +1,10 @@
 import sbtcrossproject.CrossPlugin.autoImport.{CrossType, crossProject}
 
+version in ThisBuild := "0.1"
 scalaVersion in ThisBuild := "2.12.6"
 
 lazy val server = (project in file("server")).settings(
   name := "scala-gamecenter",
-  version := "0.1",
   scalaJSProjects := Seq(client),
   pipelineStages in Assets := Seq(scalaJSPipeline),
   compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline).value,
@@ -54,7 +54,12 @@ lazy val sharedJs = shared.js
 
 lazy val connector = (project in file("connector"))
   .settings(
-    name := "scala-gamecenter-connector"
+    name := "scala-gamecenter-connector",
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp" %% "core" % "1.3.5",
+      "com.lihaoyi" %% "utest" % "0.6.5" % "test"
+    ),
+    testFrameworks += new TestFramework("utest.runner.Framework")
   )
 
 lazy val check = (project in file("check"))
