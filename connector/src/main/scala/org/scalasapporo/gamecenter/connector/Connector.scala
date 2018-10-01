@@ -1,7 +1,9 @@
 package org.scalasapporo.gamecenter.connector
 
+import com.softwaremill.sttp.SttpBackend
+
 import scala.language.higherKinds
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait Connector[R[_]] {
   type Request <: ConnectorRequest
@@ -42,11 +44,15 @@ case class ProcessConnectorContext(cmd: String) extends AnyVal
 
 trait HttpConnector extends Connector[Future] {
   import com.softwaremill.sttp._
+  type Request = HttpConnectorRequest
   override def execute(request: HttpConnectorRequest)(implicit ctx: HttpConnectorContext): Future[Response] = {
+    import ctx.backend
+    import ctx.ec
     sttp
       .body(request.payload)
       .post(uri"${ctx.uri}")
       .send()
+      .map(_.unsafeBody.getBytes)
   }
 }
 object HttpConnector extends HttpConnector
@@ -59,4 +65,5 @@ object HttpConnectorRequest {
   type R = HttpConnectorRequest
   implicit val gen: Array[Byte] => R = (payload: Array[Byte]) => (_: R#Context) => payload
 }
-case class HttpConnectorContext(uri: String) extends AnyVal
+case class HttpConnectorContext(uri: String)
+  (implicit val backend: SttpBackend[Future, Nothing], val ec: ExecutionContext)
