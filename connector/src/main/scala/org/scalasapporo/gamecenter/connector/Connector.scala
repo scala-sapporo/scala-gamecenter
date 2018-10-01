@@ -1,10 +1,11 @@
 package org.scalasapporo.gamecenter.connector
 
 import scala.language.higherKinds
+import scala.concurrent.Future
 
 trait Connector[R[_]] {
   type Request <: ConnectorRequest
-  type Response
+  type Response = Request#Payload
   def execute(payload: Request#Payload)
     (implicit ctx: Request#Context, f: Request#Payload => Request): R[Response] = execute(f(payload))
   def execute(request: Request)(implicit ctx: Request#Context): R[Response]
@@ -22,7 +23,6 @@ trait ConnectorRequest {
 
 trait ProcessConnector extends Connector[Connector.Id] {
   type Request = ProcessConnectorRequest
-  type Response = String
   def execute(request: ProcessConnectorRequest)(implicit ctx: ProcessConnectorRequest#Context): Connector.Id[Response] = {
     import scala.sys.process._
     Process(Seq(ctx.cmd, request.payload)).!!
@@ -40,16 +40,23 @@ object ProcessConnectorRequest {
 }
 case class ProcessConnectorContext(cmd: String) extends AnyVal
 
-/*
-trait HttpConnector[R[_]] extends Connector {
+trait HttpConnector extends Connector[Future] {
   import com.softwaremill.sttp._
-  def uri: Uri
-  override def execute(request: Request): Response = {
+  override def execute(request: HttpConnectorRequest)(implicit ctx: HttpConnectorContext): Future[Response] = {
     sttp
-      .body(serialize(request))
-      .post(uri)
-      .mapResponse(deserialize)
+      .body(request.payload)
+      .post(uri"${ctx.uri}")
       .send()
   }
 }
-*/
+object HttpConnector extends HttpConnector
+
+trait HttpConnectorRequest extends ConnectorRequest {
+  type Payload = Array[Byte]
+  type Context = HttpConnectorContext
+}
+object HttpConnectorRequest {
+  type R = HttpConnectorRequest
+  implicit val gen: Array[Byte] => R = (payload: Array[Byte]) => (_: R#Context) => payload
+}
+case class HttpConnectorContext(uri: String) extends AnyVal
